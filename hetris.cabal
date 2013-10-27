@@ -1,0 +1,24 @@
+name:           Hetris
+version:        0.1
+synopsis:       Tetris in Haskell
+author:         Michael Pankov
+build-type:     Simple
+cabal-version:  >= 1.9.2
+
+executable hetris
+    build-depends:  base
+    main-is:        Main.hs
+
+test-suite test-hetris
+    type:           exitcode-stdio-1.0
+    build-depends:  base
+                  , containers
+                  , Cabal >= 1.9.2
+                  , HUnit
+                  , QuickCheck
+                  , test-framework
+                  , test-framework-quickcheck2
+                  , test-framework-hunit
+    main-is:        Main.hs
+    other-modules:  Hetris
+    hs-source-dirs: Test/Hetris, .

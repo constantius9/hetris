@@ -4,4 +4,4 @@ cabal-dev
 *.hi
 *.chi
 *.chs.h
-.virthualenv
+.hsenv
