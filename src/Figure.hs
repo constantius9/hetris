@@ -8,6 +8,7 @@ import Control.Lens
 import Cube
 import Point
 import Orientation
+import Vector
 
 data FigureKind = I
                 | J
@@ -45,8 +46,8 @@ createFigure kind =
              , Cube (Point 0 2)
              , Cube (Point 0 3)]
 
-moveFigure :: Figure -> Figure
-moveFigure = fmap (+1) . figureOrigin
+moveFigure :: Vector -> Figure -> Figure
+moveFigure offset = figureOrigin `over` movePoint offset
 
 updateFigure :: Figure -> Figure
 updateFigure = undefined
