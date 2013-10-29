@@ -1,7 +1,12 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Cube where
+
+import Control.Lens
 
 import Point
 
 data Cube = Cube
-            { cubeOrigin :: Point }
+            { _cubeOrigin :: Point }
           deriving (Show)
+$(makeLenses ''Cube)
