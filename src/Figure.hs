@@ -4,6 +4,7 @@
 module Figure where
 
 import Control.Lens
+import Control.Monad
 
 import Constants
 import Cube
@@ -62,9 +63,8 @@ data Borders = Borders
                , _lowerRight  :: Point }
              deriving (Show)
 
-data Collision = Collision Point Point
-
-intersect = undefined
+data Collision = Collision Point
+               deriving (Show)
 
 makeBBox :: Figure -> Borders
 makeBBox figure = Borders topLeft lowerRight
@@ -75,9 +75,20 @@ makeBBox figure = Borders topLeft lowerRight
         Point minX minY = minimum points'
         Point maxX maxY = maximum points'
 
-collideWithBorder :: Borders -> Figure -> Maybe Collision
-collideWithBorder borders figure = borders `intersect` bbox
-  where bbox = makeBBox figure
+propagateJust :: Maybe a -> Maybe a -> Maybe a
+propagateJust (Just a) _ = (Just a)
+propagateJust Nothing (Just b) = Just b
+propagateJust Nothing _ = Nothing
+
+intersect :: Figure -> Figure -> Maybe Collision
+intersect f1 f2 =
+  collision
+  where pairs = [(b1, b2) | b1 <- view cubes f1, b2 <- view cubes f2]
+        compareFunction (c1, c2) = if c1 == c2 then Just c1 else Nothing
+        collisionCubes = map compareFunction pairs :: [Maybe Cube]
+        collisionCube = foldl propagateJust Nothing collisionCubes
+        makeCollision z = Collision (view cubeOrigin z)
+        collision = liftM makeCollision collisionCube
 
 updateFigure :: Figure -> Either Stop Figure
 updateFigure = undefined
