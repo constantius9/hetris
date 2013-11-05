@@ -17,7 +17,7 @@ data Point = Point
 $(makeLenses ''Point)
 
 getX = view x
-getY = view x
+getY = view y
 
 instance Eq Point where
   (==) a b = (getX a == getX b) && (getY a == getY b)
@@ -32,3 +32,5 @@ instance AffineSpace Point where
 
 movePoint :: Vector -> Point -> Point
 movePoint offset = (.+^ offset)
+
+movePointR = flip movePoint

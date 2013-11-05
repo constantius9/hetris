@@ -6,7 +6,7 @@ module Figure where
 import Control.Lens
 import Control.Monad
 
-import Constants
+import Coordinate
 import Cube
 import Point
 import Orientation
@@ -26,6 +26,21 @@ data Figure = Figure
               , _orientation :: Orientation }
             deriving (Show)
 $(makeLenses ''Figure)
+
+getOffsetCubes f =
+  offsetCubes'
+  where
+    cubes' = view cubes f :: [Cube]
+    points' = map (view cubeOrigin) cubes' :: [Point]
+    x' = getX (view figureOrigin f) :: Coordinate
+    y' = getY (view figureOrigin f) :: Coordinate
+    offset' = Vector x' y' :: Vector
+    offsetByOrigin = movePoint offset' :: Point -> Point
+    offsetPoints' = map offsetByOrigin points' :: [Point]
+    offsetCubes' = map Cube offsetPoints' :: [Cube]
+
+offsetCubes :: Functor f => ([Cube] -> f [Cube]) -> Figure -> f Figure
+offsetCubes = undefined
 
 createFigure kind =
   Figure { _cubes
@@ -83,7 +98,7 @@ propagateJust Nothing _ = Nothing
 intersect :: Figure -> Figure -> Maybe Collision
 intersect f1 f2 =
   collision
-  where pairs = [(b1, b2) | b1 <- view cubes f1, b2 <- view cubes f2]
+  where pairs = [(b1, b2) | b1 <- getOffsetCubes f1, b2 <- getOffsetCubes f2]
         compareFunction (c1, c2) = if c1 == c2 then Just c1 else Nothing
         collisionCubes = map compareFunction pairs :: [Maybe Cube]
         collisionCube = foldl propagateJust Nothing collisionCubes
