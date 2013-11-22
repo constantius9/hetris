@@ -5,6 +5,11 @@ module Figure where
 
 import Control.Lens
 import Control.Monad
+import Control.Monad.State.Lazy
+
+import Data.Random.Extras as DRE
+import Data.RVar
+import Data.Random.Source.PureMT
 
 import Coordinate
 import Cube
@@ -19,6 +24,7 @@ data FigureKind = I
                 | S
                 | T
                 | Z
+                deriving (Show)
 
 data Figure = Figure
               { _cubes :: [Cube]
@@ -50,11 +56,11 @@ createFigure kind =
     _cubes =
       case kind of
         I -> cubesI
-        J -> undefined
-        L -> undefined
-        O -> undefined
-        S -> undefined
-        T -> undefined
+        J -> cubesJ
+        L -> cubesL
+        O -> cubesO
+        S -> cubesS
+        T -> cubesT
         Z -> cubesZ
     _figureOrigin = Point { _x=0, _y=0 }
     _orientation = ODown
@@ -62,13 +68,57 @@ createFigure kind =
              , Cube (Point 0 1)
              , Cube (Point 0 2)
              , Cube (Point 0 3) ]
+    cubesJ = [ Cube (Point 1 0)
+             , Cube (Point 1 1)
+             , Cube (Point 1 2)
+             , Cube (Point 0 2) ]
+    cubesL = [ Cube (Point 0 0)
+             , Cube (Point 0 1)
+             , Cube (Point 0 2)
+             , Cube (Point 1 2) ]
+    cubesO = [ Cube (Point 0 0)
+             , Cube (Point 0 1)
+             , Cube (Point 1 0)
+             , Cube (Point 1 1) ]
+    cubesS = [ Cube (Point 2 0)
+             , Cube (Point 1 0)
+             , Cube (Point 1 1)
+             , Cube (Point 0 1) ]
+    cubesT = [ Cube (Point 0 0)
+             , Cube (Point 0 1)
+             , Cube (Point 0 2)
+             , Cube (Point 0 3) ]
     cubesZ = [ Cube (Point 0 0)
              , Cube (Point 1 0)
              , Cube (Point 1 1)
-             , Cube (Point 1 2) ]
+             , Cube (Point 2 1) ]
 
 moveFigure :: Vector -> Figure -> Figure
 moveFigure offset = figureOrigin `over` movePoint offset
+
+rotateFigure :: Rotation -> Figure -> Figure
+rotateFigure rotation f = cubes `over` rotateCubes rotation $ figure'
+  where figure' = orientation `over` rotateOrientation rotation $ f
+
+rotateCubes :: Rotation -> [Cube] -> [Cube]
+rotateCubes rotation = map (rotateCube rotation)
+
+rotateCube :: Rotation -> Cube -> Cube
+rotateCube CCW (Cube (Point u v)) =
+  Cube (Point v (-u))
+rotateCube CW (Cube (Point u v)) =
+  Cube (Point (-v) u)
+
+data Rotation = CW | CCW
+
+rotateOrientation CW ORight = ODown
+rotateOrientation CW ODown = OLeft
+rotateOrientation CW OLeft = OTop
+rotateOrientation CW OTop = ORight
+rotateOrientation CCW ORight = OTop
+rotateOrientation CCW OTop = OLeft
+rotateOrientation CCW OLeft = ODown
+rotateOrientation CCW ODown = ORight
 
 data Stop = CollidedWithFallen
           | CollidedWithBorder
@@ -91,7 +141,7 @@ makeBBox figure = Borders topLeft lowerRight
         Point maxX maxY = maximum points'
 
 propagateJust :: Maybe a -> Maybe a -> Maybe a
-propagateJust (Just a) _ = (Just a)
+propagateJust (Just a) _ = Just a
 propagateJust Nothing (Just b) = Just b
 propagateJust Nothing _ = Nothing
 
@@ -105,5 +155,18 @@ intersect f1 f2 =
         makeCollision z = Collision (view cubeOrigin z)
         collision = liftM makeCollision collisionCube
 
-updateFigure :: Figure -> Either Stop Figure
-updateFigure = undefined
+updateFigure :: Update -> Figure -> Either Stop Figure
+updateFigure (Rotate r) f = Right $ rotateFigure r f
+updateFigure (Move d) f = Right $ moveFigure d f
+
+data Update = Rotate Rotation
+            | Move Direction
+
+type Direction = Vector
+
+spawnFigure :: PureMT -> Figure
+spawnFigure g = f
+  where r       = sampleRVar c :: State PureMT FigureKind
+        c       = DRE.choice [I, J, L, O, S, T, Z]
+        (fk, _) = runState r g
+        f       = createFigure fk
