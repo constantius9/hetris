@@ -1,7 +1,8 @@
 import qualified Data.Text as T
 
-import Graphics.Vty.Widgets.All
+import Graphics.Vty.Image
 import Graphics.Vty.LLInput
+import Graphics.Vty.Widgets.All
 
 import System.Exit
 
@@ -41,7 +42,17 @@ main = do
   t1 <- plainText $ T.pack "Next:"
   addRow tblNext t1
 
-  hBox1 <- plainText (T.pack "Left 1") <++> plainText (T.pack "Right 2")
+  tblField <- newTable
+              [ column $ ColFixed 48]
+              BorderNone
+  setDefaultCellPadding tblField padNone
+
+  t1 <- plainText (T.pack "|| . . . . . . . . . . . . . . . . . . . .||") >>= withNormalAttribute (fgColor blue)
+  addRow tblField t1
+
+  vBoxCentral <- return tblField <--> plainText (T.pack "Play Tetris!")
+
+  hBox1 <- return vBoxCentral <++> plainText (T.pack "Right 2")
   vBoxInnerLeft <- return tbl1 <--> return tblHelp
   vBoxLeft <- return vBoxInnerLeft <--> return tblNext
   hBox2 <- return vBoxLeft <++> return hBox1
