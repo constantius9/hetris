@@ -12,4 +12,4 @@ data Cube = Cube
 $(makeLenses ''Cube)
 
 instance Eq Cube where
-  (==) c1 c2 = (view cubeOrigin c1) == (view cubeOrigin c2)
+  (==) c1 c2 = view cubeOrigin c1 == view cubeOrigin c2

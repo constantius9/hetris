@@ -1,5 +1,7 @@
 module World where
 
+import Control.Monad.State.Lazy
+
 import Figure
 
 data World = World [Figure]
