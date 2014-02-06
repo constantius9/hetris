@@ -4,7 +4,10 @@
 module Point where
 
 import Control.Lens
+
 import Data.AffineSpace
+import Data.Function
+import Data.List
 
 import Coordinate
 import Vector
@@ -34,3 +37,20 @@ movePoint :: Vector -> Point -> Point
 movePoint offset = (.+^ offset)
 
 movePointR = flip movePoint
+
+foldWith accessor processor list =
+  accessor $ processor (compare `on` accessor) list
+
+minimumByX = foldWith getX minimumBy
+minimumByY = foldWith getY minimumBy
+maximumByX = foldWith getX maximumBy
+maximumByY = foldWith getY maximumBy
+
+pointsBetween :: Point -> Point -> [Point]
+pointsBetween a b = map (uncurry Point) [(c, d) | c <- xs, d <- ys]
+  where minX = minimumByX [a, b]
+        minY = minimumByY [a, b]
+        maxX = maximumByX [a, b]
+        maxY = maximumByY [a, b]
+        xs   = [minX .. maxX]
+        ys   = [minY .. maxY]

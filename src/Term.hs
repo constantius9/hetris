@@ -6,6 +6,8 @@ import Graphics.Vty.Widgets.All
 
 import System.Exit
 
+import FigureW
+
 main :: IO ()
 main = do
   tbl1 <- newTable [column ColAuto] BorderNone

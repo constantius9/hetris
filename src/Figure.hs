@@ -7,9 +7,13 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.State.Lazy
 
+import Data.Function
+import Data.List
 import Data.Random.Extras as DRE
 import Data.RVar
 import Data.Random.Source.PureMT
+import qualified Data.Set as S
+import qualified Data.Text as T
 
 import Coordinate
 import Cube
@@ -170,3 +174,20 @@ spawnFigure g = f
         c       = DRE.choice [I, J, L, O, S, T, Z]
         (fk, _) = runState r g
         f       = createFigure fk
+
+draw :: Figure -> T.Text
+draw figure = T.pack image''
+  where points = sortBy compare $
+                 map (view cubeOrigin) (view cubes figure)
+        minX   = minimumByX points
+        minY   = minimumByY points
+        maxX   = maximumByX points
+        maxY   = maximumByY points
+        grouped_points = groupBy ((==) `on` getY) points
+        bbox   = pointsBetween (Point minX minY) (Point maxX maxY)
+        grouped_bbox = groupBy ((==) `on` getY) $ sort bbox
+        set_points = S.fromList points
+        brush point = if point `S.member` set_points then "O" else " "
+        image  = [map brush l | l <- grouped_bbox ]
+        image' = intersperse ["\n"] image
+        image''= concat [concat l | l <- image']
