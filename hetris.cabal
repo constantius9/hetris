@@ -7,18 +7,16 @@ cabal-version:  >= 1.9.2
 
 executable hetris
     build-depends:  base
-    main-is:        Main.hs
-
-test-suite test-hetris
-    type:           exitcode-stdio-1.0
-    build-depends:  base
-                  , containers
-                  , Cabal >= 1.9.2
-                  , HUnit
-                  , QuickCheck
-                  , test-framework
-                  , test-framework-quickcheck2
-                  , test-framework-hunit
-    main-is:        Main.hs
-    other-modules:  Hetris
-    hs-source-dirs: Test/Hetris, .
+    main-is:        Term.hs
+    hs-source-dirs: src
+    build-depends:  base == 4.6.*
+                  , vector-space == 0.8.*
+                  , lens == 4.2
+                  , text == 0.11.*
+                  , containers == 0.5.*
+                  , random-source == 0.3.*
+                  , rvar == 0.2.*
+                  , random-extras == 0.19
+                  , mtl == 2.2.*
+                  , vty == 4.7.*
+                  , vty-ui == 1.7.*
