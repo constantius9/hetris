@@ -17,6 +17,6 @@ executable hetris
                   , random-source == 0.3.*
                   , rvar == 0.2.*
                   , random-extras == 0.19
-                  , mtl == 2.2.*
+                  , mtl == 2.*
                   , vty == 4.7.*
                   , vty-ui == 1.7.*
