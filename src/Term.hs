@@ -45,14 +45,24 @@ main = do
   addRow tblNext t1
 
   tblField <- newTable
-              (replicate 24 (column $ ColFixed 2))
+              (replicate 12 (column $ ColFixed 2))
               BorderNone
   setDefaultCellPadding tblField padNone
 
-  border <- (plainText $ T.pack "||") >>= withNormalAttribute (fgColor blue)
-  cell   <- (plainText $ T.pack " .") >>= withNormalAttribute (fgColor green)
-  let row = [mkRow border] ++ (replicate 22 (mkRow cell)) ++ [mkRow border]
-  addRow tblField (foldl1 (.|.) row)
+  borderL <- plainText (T.pack "<!") >>= withNormalAttribute (fgColor blue)
+  borderR <- plainText (T.pack "!>") >>= withNormalAttribute (fgColor blue)
+  borderB <- plainText (T.pack "==") >>= withNormalAttribute (fgColor blue)
+  cell    <- plainText (T.pack " .") >>= withNormalAttribute (fgColor green)
+  let rowField = [mkRow borderL]
+              ++ replicate 10 (mkRow cell)
+              ++ [mkRow borderR]
+      rowBorder = [mkRow borderL]
+               ++ replicate 10 (mkRow borderB)
+               ++ [mkRow borderR]
+      rows = replicate 20 rowField
+
+  mapM_ (addRow tblField) rows
+  addRow tblField rowBorder
 
   vBoxCentral <- return tblField <--> plainText (T.pack "Play Tetris!")
 
