@@ -1,12 +1,18 @@
 import qualified Data.Text as T
 
+import Control.Monad.State
+
 import Graphics.Vty.Image
 import Graphics.Vty.LLInput
 import Graphics.Vty.Widgets.All
 
 import System.Exit
+import System.IO
 
 import FigureW
+import Background
+import BackgroundW
+import FieldW
 
 main :: IO ()
 main = do
@@ -44,27 +50,8 @@ main = do
   t1 <- plainText $ T.pack "Next:"
   addRow tblNext t1
 
-  tblField <- newTable
-              (replicate 12 (column $ ColFixed 2))
-              BorderNone
-  setDefaultCellPadding tblField padNone
-
-  borderL <- plainText (T.pack "<!") >>= withNormalAttribute (fgColor blue)
-  borderR <- plainText (T.pack "!>") >>= withNormalAttribute (fgColor blue)
-  borderB <- plainText (T.pack "==") >>= withNormalAttribute (fgColor blue)
-  cell    <- plainText (T.pack " .") >>= withNormalAttribute (fgColor green)
-  let rowField = [mkRow borderL]
-              ++ replicate 10 (mkRow cell)
-              ++ [mkRow borderR]
-      rowBorder = [mkRow borderL]
-               ++ replicate 10 (mkRow borderB)
-               ++ [mkRow borderR]
-      rows = replicate 20 rowField
-
-  mapM_ (addRow tblField) rows
-  addRow tblField rowBorder
-
-  vBoxCentral <- return tblField <--> plainText (T.pack "Play Tetris!")
+  (field, _) <- newFieldW
+  vBoxCentral <- return field <--> plainText (T.pack "Play Tetris!")
 
   hBox1 <- return vBoxCentral <++> plainText (T.pack "Right 2")
   vBoxInnerLeft <- return tbl1 <--> return tblHelp
@@ -73,10 +60,7 @@ main = do
   ui <- centered hBox2
 
   fg <- newFocusGroup
-  fg `onKeyPressed` \_ key _ ->
-    if key == KASCII 'q'
-    then exitSuccess
-    else return False
+  fg `onKeyPressed` handleKeyPress
 
   addToFocusGroup fg hBox2
 
@@ -84,3 +68,11 @@ main = do
   _ <- addToCollection c ui fg
 
   runUi c defaultContext
+
+handleKeyPress :: Widget a -> Key -> [Modifier] -> IO Bool
+handleKeyPress _ key _ =
+  case key of
+    KASCII 'q' -> exitSuccess
+    _ -> return False
+
+-- (value, newState) <- runStateT (modify ((5 :) :: [Int] -> [Int]) :: StateT [Int] IO ()) [3]

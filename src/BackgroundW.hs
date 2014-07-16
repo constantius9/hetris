@@ -19,8 +19,8 @@ data BackgroundW = BackgroundW
 
 renderBackgroundInternal :: DisplayRegion -> T.Text
 renderBackgroundInternal (DisplayRegion w h) = ss
-  where s  = T.concat $ replicate (wi `div` 2) " ."
-        ss = T.concat $ intersperse "\n" $ replicate hi s
+  where s  = T.concat $ replicate 12 " ."
+        ss = T.concat $ intersperse "\n" $ replicate 20 s
         wi = fromIntegral w
         hi = fromIntegral h
 
