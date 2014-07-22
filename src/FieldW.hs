@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module FieldW where
 
@@ -8,7 +8,13 @@ import qualified Data.Text as T
 import Graphics.Vty.Image
 import Graphics.Vty.Widgets.All
 
-data Field = Field (M.Map (Int,Int) FormattedText)
+data Character = Character { glyph :: T.Text
+                           , color :: Color
+                           } deriving (Show)
+
+type FieldMap = M.Map (Int,Int) Character
+
+data Field = Field (M.Map (Int,Int) Character)
              deriving (Show)
 
 newFieldW :: IO (Widget Field, Widget FocusGroup)
@@ -18,20 +24,20 @@ newFieldW = do
               BorderNone
   setDefaultCellPadding tblField padNone
 
-  borderL <- plainText (T.pack "<!") >>= withNormalAttribute (fgColor blue)
-  borderR <- plainText (T.pack "!>") >>= withNormalAttribute (fgColor blue)
-  borderB <- plainText (T.pack "==") >>= withNormalAttribute (fgColor blue)
-  cell    <- plainText (T.pack " .") >>= withNormalAttribute (fgColor green)
-  let rowField = [mkRow borderL]
-              ++ replicate 10 (mkRow cell)
-              ++ [mkRow borderR]
-      rowBorder = [mkRow borderL]
-               ++ replicate 10 (mkRow borderB)
-               ++ [mkRow borderR]
-      rows = replicate 20 rowField
+  let cells   = [(i, Character " ." green) | i <- [1..10]]
+      row     = [(0, Character "<!" blue)] ++ cells ++ [(11, Character "!>" blue)]
+      borderB = [(0,  Character "<!" blue)]
+             ++ [(i,  Character "==" blue) | i <- [1..10]]
+             ++ [(11, Character "!>" blue)]
+      rowsCells = [((i,j), c) | i <- [0..19] :: [Int], (j, c) <- row]
+      rowBorder = [((20,j), c) | (j, c) <- borderB]
+      field = M.fromList $ rowsCells ++ rowBorder :: FieldMap
+      rows = [M.toAscList $ M.filterWithKey (\k _ -> (== i) . fst $ k) field | i <- [0..20]] :: [[((Int,Int), Character)]]
+      rows' = [map snd l | l <- rows] :: [[Character]]
 
-  mapM_ (addRow tblField) rows
-  addRow tblField rowBorder
+  mapM_ ((\cs -> do ws <- mapM (\(Character g c) -> plainText g >>= withNormalAttribute (fgColor c)) cs
+                    let r = foldl (.|.) (mkRow . head $ ws) (tail ws)
+                    addRow tblField r) :: [Character] -> IO ()) rows'
 
   fg <- newFocusGroup
   addToFocusGroup fg tblField
