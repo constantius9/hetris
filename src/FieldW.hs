@@ -14,8 +14,10 @@ data Character = Character { glyph :: T.Text
 
 type FieldMap = M.Map (Int,Int) Character
 
-data Field = Field (M.Map (Int,Int) Character)
-             deriving (Show)
+data Field = Field (M.Map (Int,Int) Character) (Widget Table)
+
+instance Show Field where
+  show (Field m _) = show m
 
 newFieldW :: IO (Widget Field, Widget FocusGroup)
 newFieldW = do
@@ -42,6 +44,8 @@ newFieldW = do
   fg <- newFocusGroup
   addToFocusGroup fg tblField
 
-  wref <- newWidget (Field M.empty) $ \w ->
-    w { render_ = \_ size ctx -> render tblField size ctx}
+  wref <- newWidget (Field field tblField) $ \w ->
+    w { render_ = \this size ctx -> do
+           (Field m w) <- getState this
+           render tblField size ctx}
   return (wref, fg)
