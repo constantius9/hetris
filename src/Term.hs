@@ -1,6 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import qualified Data.Text as T
 
 import Control.Monad.State
+
+import qualified Data.Map as M
 
 import Graphics.Vty.Image
 import Graphics.Vty.LLInput
@@ -51,6 +55,7 @@ main = do
   addRow tblNext t1
 
   (field, _) <- newFieldW
+  field `onKeyPressed` f
   vBoxCentral <- return field <--> plainText (T.pack "Play Tetris!")
 
   hBox1 <- return vBoxCentral <++> plainText (T.pack "Right 2")
@@ -76,3 +81,12 @@ handleKeyPress _ key _ =
     _ -> return False
 
 -- (value, newState) <- runStateT (modify ((5 :) :: [Int] -> [Int]) :: StateT [Int] IO ()) [3]
+
+f :: Widget Field -> Key -> [Modifier] -> IO Bool
+f this key _ =
+  case key of
+    KASCII 'z' -> do
+      Field widgetMap _ <- getState this
+      let w = widgetMap M.! (5,5)
+      setText w "ZZ"
+      return True

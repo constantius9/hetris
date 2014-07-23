@@ -14,10 +14,10 @@ data Character = Character { glyph :: T.Text
 
 type FieldMap = M.Map (Int,Int) Character
 
-data Field = Field (M.Map (Int,Int) Character) (Widget Table)
+data Field = Field (M.Map (Int,Int) (Widget FormattedText)) (Widget Table)
 
 instance Show Field where
-  show (Field m _) = show m
+  show (Field _ _) = "Field"
 
 newFieldW :: IO (Widget Field, Widget FocusGroup)
 newFieldW = do
@@ -37,14 +37,18 @@ newFieldW = do
       rows = [M.toAscList $ M.filterWithKey (\k _ -> (== i) . fst $ k) field | i <- [0..20]] :: [[((Int,Int), Character)]]
       rows' = [map snd l | l <- rows] :: [[Character]]
 
-  mapM_ ((\cs -> do ws <- mapM (\(Character g c) -> plainText g >>= withNormalAttribute (fgColor c)) cs
-                    let r = foldl (.|.) (mkRow . head $ ws) (tail ws)
-                    addRow tblField r) :: [Character] -> IO ()) rows'
+  wms <- mapM ((\cs -> do ws <- mapM (\(_, Character g c) -> plainText g >>= withNormalAttribute (fgColor c)) cs
+                          let r = foldl (.|.) (mkRow . head $ ws) (tail ws)
+                              widgetsMap = M.fromList $ zip (map fst cs) ws :: M.Map (Int, Int) (Widget FormattedText)
+                          addRow tblField r
+                          return widgetsMap) :: [((Int,Int), Character)] -> IO (M.Map (Int, Int) (Widget FormattedText))) rows
+
+  let wm = foldl1 (M.union) wms
 
   fg <- newFocusGroup
   addToFocusGroup fg tblField
 
-  wref <- newWidget (Field field tblField) $ \w ->
+  wref <- newWidget (Field wm tblField) $ \w ->
     w { render_ = \this size ctx -> do
            (Field m w) <- getState this
            render tblField size ctx}
