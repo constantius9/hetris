@@ -86,7 +86,5 @@ f :: Widget Field -> Key -> [Modifier] -> IO Bool
 f this key _ =
   case key of
     KASCII 'z' -> do
-      Field widgetMap _ <- getState this
-      let w = widgetMap M.! (5,5)
-      setText w "ZZ"
+      renderOnField this "T\nTT\nT" (2,2)
       return True

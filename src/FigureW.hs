@@ -9,11 +9,12 @@ import Graphics.Vty.Widgets.All
 import Graphics.Vty.Image
 
 import Figure
+import FieldW
 
 data FigureW = FigureW Figure
 
-newFigureW :: Figure -> IO (Widget Figure)
-newFigureW f = do
+newFigureW :: Field -> Figure -> IO (Widget Figure)
+newFigureW (Field wm wt) f = do
   wRef <- newWidget f $ \w ->
     w { render_ =
            \this _ ctx -> do
