@@ -13,7 +13,6 @@ import Graphics.Vty.Widgets.All
 import System.Exit
 import System.IO
 
-import FigureW
 import Background
 import BackgroundW
 import FieldW
@@ -85,6 +84,7 @@ handleKeyPress _ key _ =
 f :: Widget Field -> Key -> [Modifier] -> IO Bool
 f this key _ =
   case key of
-    KASCII 'z' -> do
-      renderOnField this "T\nTT\nT" (2,2)
+    KASCII ' ' -> do
+      spawnFigureOnField this
       return True
+    _ -> return False

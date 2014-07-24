@@ -13,11 +13,12 @@ import FieldW
 
 data FigureW = FigureW Figure
 
-newFigureW :: Field -> Figure -> IO (Widget Figure)
-newFigureW (Field wm wt) f = do
+newFigureW :: Widget Field -> Figure -> IO (Widget Figure)
+newFigureW field f = do
   wRef <- newWidget f $ \w ->
     w { render_ =
            \this _ ctx -> do
              s <- getState this
-             return $ vert_cat $ map (string (getNormalAttr ctx)) (lines $ T.unpack $ draw s) }
+             renderOnField field (draw s) (0,0)
+             return () }
   return wRef
