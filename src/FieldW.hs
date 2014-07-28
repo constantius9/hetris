@@ -74,9 +74,22 @@ newFieldW = do
            Field _ _ figures _ _ <- getState this
            mapM_ (\(f@(Figure _ o _)) -> do
                      let t = draw f
+                     renderOnField this defaultText (Point 0 0)
                      renderOnField this t o) figures
            render tblField size ctx}
   return (wref, fg)
+
+
+defaultText = field
+  where
+    cells   = [ " ." | i <- [1..10]]
+    row     = [ "<!" ] ++ cells ++ [ "!>" ]
+    borderB = [ "<!" ]
+           ++ [ "==" | i <- [1..10]]
+           ++ [ "!>" ]
+    rowsCells = [ row | i <- [0..19] ]
+    rowBorder = borderB
+    field = T.unlines $ map T.unwords rowsCells ++ rowBorder
 
 
 renderOnField :: Widget Field -> T.Text -> Point -> IO ()
