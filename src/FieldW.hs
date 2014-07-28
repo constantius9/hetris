@@ -4,7 +4,8 @@ module FieldW
        ( Field(..)
        , newFieldW
        , renderOnField
-       , spawnFigureOnField )
+       , spawnFigureOnField
+       , removeFigureFromField )
        where
 
 import Control.Monad.State.Lazy
@@ -34,6 +35,7 @@ data Field = Field
              (Widget Table)
              [Figure]
              (State PureMT FigureKind)
+             PureMT
 
 instance Show Field where
   show (Field {}) = "Field"
@@ -67,9 +69,9 @@ newFieldW = do
   fg <- newFocusGroup
   addToFocusGroup fg tblField
 
-  wref <- newWidget (Field wm tblField [] (let c = DRE.choice [I, J, L, O, S, T, Z] in sampleRVar c :: State PureMT FigureKind)) $ \w ->
+  wref <- newWidget (Field wm tblField [] (let c = DRE.choice [I, J, L, O, S, T, Z] in sampleRVar c :: State PureMT FigureKind) (pureMT 0)) $ \w ->
     w { render_ = \this size ctx -> do
-           Field _ _ figures _ <- getState this
+           Field _ _ figures _ _ <- getState this
            mapM_ (\(f@(Figure _ o _)) -> do
                      let t = draw f
                      renderOnField this t o) figures
@@ -79,7 +81,7 @@ newFieldW = do
 
 renderOnField :: Widget Field -> T.Text -> Point -> IO ()
 renderOnField field text pos@(Point oi oj) = do
-  Field wm _ figures _ <- getState field
+  Field wm _ figures _ _ <- getState field
   mapM_ (\(i,t) -> setText (wm M.! i) t) ls''''
   where ls = T.lines text
         ls' = map (replicate 2) ls :: [[T.Text]]
@@ -91,8 +93,13 @@ renderOnField field text pos@(Point oi oj) = do
 
 spawnFigureOnField :: Widget Field -> IO ()
 spawnFigureOnField field = do
-  state@(Field a b figures random) <- getState field
-  let (fk, pmt) = runState random (pureMT 0)
+  state@(Field a b figures random pmt) <- getState field
+  let (fk, pmt') = runState random pmt
       f = createFigure fk
       figures' = f : figures
-  updateWidgetState field (const $ Field a b figures' random)
+  updateWidgetState field (const $ Field a b figures' (let c = DRE.choice [I, J, L, O, S, T, Z] in sampleRVar c :: State PureMT FigureKind) pmt')
+
+removeFigureFromField :: Widget Field -> IO ()
+removeFigureFromField field = do
+  state@(Field a b figures c d) <- getState field
+  updateWidgetState field (const $ Field a b (drop 1 figures) c d)

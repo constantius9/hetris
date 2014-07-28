@@ -87,4 +87,7 @@ f this key _ =
     KASCII ' ' -> do
       spawnFigureOnField this
       return True
+    KASCII 'r' -> do
+      removeFigureFromField this
+      return True
     _ -> return False
