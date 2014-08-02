@@ -2,6 +2,7 @@
 
 module FieldW
        ( Field(..)
+       , defaultText
        , newFieldW
        , renderOnField
        , spawnFigureOnField
@@ -17,12 +18,15 @@ import Data.RVar
 import qualified Data.Random.Extras as DRE
 import Data.Random.Source.PureMT
 
+import Debug.Trace
+
 import Graphics.Vty.Image
 import Graphics.Vty.Widgets.All
 
 import Coordinate
 import Figure
 import Point
+import Prepare
 
 data Character = Character { glyph :: T.Text
                            , color :: Color
@@ -74,8 +78,8 @@ newFieldW = do
            Field _ _ figures _ _ <- getState this
            mapM_ (\(f@(Figure _ o _)) -> do
                      let t = draw f
-                     renderOnField this defaultText (Point 0 0)
-                     renderOnField this t o) figures
+                     renderOnField this (trace (show defaultText) defaultText) (Point 0 0)
+                     renderOnField this (trace (show t) t) o) figures
            render tblField size ctx}
   return (wref, fg)
 
@@ -89,20 +93,14 @@ defaultText = field
            ++ [ "!>" ]
     rowsCells = [ row | i <- [0..19] ]
     rowBorder = borderB
-    field = T.unlines $ map T.unwords rowsCells ++ rowBorder
+    field = T.unlines (map (foldl1 T.append) rowsCells) `T.append` (foldl1 T.append rowBorder)
 
 
 renderOnField :: Widget Field -> T.Text -> Point -> IO ()
 renderOnField field text pos@(Point oi oj) = do
   Field wm _ figures _ _ <- getState field
-  mapM_ (\(i,t) -> setText (wm M.! i) t) ls''''
-  where ls = T.lines text
-        ls' = map (replicate 2) ls :: [[T.Text]]
-        ls'' = map (\l -> if T.length (head l) /= 2 then [T.concat l] else l) ls' :: [[T.Text]]
-        ls''' = zip [0..] $ map (zip [0..]) ls''
-        Coordinate oi' = oi
-        Coordinate oj' = oj
-        ls'''' = concatMap (\(i,l) -> map (\(j,t) -> ((oi'+i,oj'+j),t)) l) ls''' :: [((Int,Int), T.Text)]
+  mapM_ (\(i,t) -> setText (wm M.! (trace ("index " ++ show i) i)) (trace ("t " ++ show t) t)) (trace ("ls" ++ show ls'''') ls'''')
+  where ls'''' = prepare pos text
 
 spawnFigureOnField :: Widget Field -> IO ()
 spawnFigureOnField field = do

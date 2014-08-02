@@ -7,7 +7,7 @@ cabal-version:  >= 1.9.2
 
 executable hetris
     build-depends:  base
-    main-is:        Term.hs
+    main-is:        Main.hs
     hs-source-dirs: src
     build-depends:  base == 4.6.*
                   , vector-space == 0.8.*
