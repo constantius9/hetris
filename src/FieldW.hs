@@ -3,8 +3,10 @@
 module FieldW
        ( Field(..)
        , defaultText
+       , getActiveFigure
        , newFieldW
        , renderOnField
+       , replaceActiveFigure
        , spawnFigureOnField
        , removeFigureFromField )
        where
@@ -77,7 +79,7 @@ newFieldW = do
     w { render_ = \this size ctx -> do
            Field _ _ figures _ _ <- getState this
            mapM_ (\(f@(Figure _ o _)) -> do
-                     let t = draw f
+                     let t = growHorizontally (draw f) 2
                      renderOnField this (trace (show defaultText) defaultText) (Point 0 0)
                      renderOnField this (trace (show t) t) o) figures
            render tblField size ctx}
@@ -107,10 +109,20 @@ spawnFigureOnField field = do
   state@(Field a b figures random pmt) <- getState field
   let (fk, pmt') = runState random pmt
       f = createFigure fk
-      figures' = f : figures
+      figures' = f { _figureOrigin = Point 0 4 }: figures
   updateWidgetState field (const $ Field a b figures' (let c = DRE.choice [I, J, L, O, S, T, Z] in sampleRVar c :: State PureMT FigureKind) pmt')
 
 removeFigureFromField :: Widget Field -> IO ()
 removeFigureFromField field = do
   state@(Field a b figures c d) <- getState field
   updateWidgetState field (const $ Field a b (drop 1 figures) c d)
+
+getActiveFigure :: Widget Field -> IO Figure
+getActiveFigure field = do
+  Field _ _ (f:_) _ _ <- getState field
+  return f
+
+replaceActiveFigure :: Widget Field -> Figure -> IO ()
+replaceActiveFigure field figure = do
+  Field a b (_:rest) c d <- getState field
+  updateWidgetState field (const $ Field a b (figure:rest) c d)

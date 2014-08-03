@@ -16,7 +16,9 @@ import System.IO
 import Background
 import BackgroundW
 import FieldW
+import Figure
 import Point
+import Vector
 
 main :: IO ()
 main = do
@@ -90,6 +92,9 @@ f this key _ =
       removeFigureFromField this
       renderOnField this defaultText (Point 0 0)
       return True
-    KASCII 'c' -> do
+    KLeft -> do
+      f <- getActiveFigure this
+      let Right f' = updateFigure (Move (Vector 0 (-1))) f
+      replaceActiveFigure this f'
       return True
     _ -> return False
