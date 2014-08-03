@@ -22,11 +22,13 @@ import Orientation
 import Vector
 
 data FigureKind = I
+                | H
                 | J
                 | L
                 | O
                 | S
                 | T
+                | V
                 | Z
                 deriving (Show)
 
@@ -60,11 +62,13 @@ createFigure kind =
     _cubes =
       case kind of
         I -> cubesI
+        H -> cubesH
         J -> cubesJ
         L -> cubesL
         O -> cubesO
         S -> cubesS
         T -> cubesT
+        V -> cubesV
         Z -> cubesZ
     _figureOrigin = Point { _x=0, _y=0 }
     _orientation = ODown
@@ -72,6 +76,7 @@ createFigure kind =
              , Cube (Point 0 1)
              , Cube (Point 0 2)
              , Cube (Point 0 3) ]
+    cubesH = [ Cube (Point 0 i) | i <- [0..11] ]
     cubesJ = [ Cube (Point 1 0)
              , Cube (Point 1 1)
              , Cube (Point 1 2)
@@ -92,6 +97,7 @@ createFigure kind =
              , Cube (Point 0 1)
              , Cube (Point 0 2)
              , Cube (Point 0 3) ]
+    cubesV = [ Cube (Point i 0) | i <- [0..19] ]
     cubesZ = [ Cube (Point 0 0)
              , Cube (Point 1 0)
              , Cube (Point 1 1)
@@ -191,3 +197,6 @@ draw figure = T.pack image''
         image  = [map brush l | l <- grouped_bbox ]
         image' = intersperse ["\n"] image
         image''= concat [concat l | l <- image']
+
+data BorderKind = VL | VR | HT | HB
+                deriving (Show, Eq, Ord)

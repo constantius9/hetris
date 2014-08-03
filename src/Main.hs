@@ -6,6 +6,8 @@ import Control.Monad.State
 
 import qualified Data.Map as M
 
+import Debug.Trace
+
 import Graphics.Vty.Image
 import Graphics.Vty.LLInput
 import Graphics.Vty.Widgets.All
@@ -94,7 +96,33 @@ f this key _ =
       return True
     KLeft -> do
       f <- getActiveFigure this
-      let Right f' = updateFigure (Move (Vector 0 (-1))) f
-      replaceActiveFigure this f'
-      return True
+      b <- getBorder this VL
+      let c = intersect f b
+      case (trace ("c " ++ show c) c) of
+        Nothing -> do
+          let Right f' = updateFigure (Move (Vector 0 (-1))) f
+          replaceActiveFigure this f'
+          return True
+        _ -> return True
+    KRight -> do
+      f <- getActiveFigure this
+      b <- getBorder this VR
+      let c = intersect f b
+      case (trace ("c " ++ show c) c) of
+        Nothing -> do
+          let Right f' = updateFigure (Move (Vector 0 1)) f
+          replaceActiveFigure this f'
+          return True
+        _ -> return True
+    KDown -> do
+      f <- getActiveFigure this
+      b <- getBorder this HB
+      let c = intersect f b
+      case (trace ("c " ++ show c) c) of
+        Nothing -> do
+          let Right f' = updateFigure (Move (Vector 1 0)) f
+          replaceActiveFigure this f'
+          return True
+        _ -> return True
+
     _ -> return False
